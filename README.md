@@ -43,10 +43,15 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-Optional check:
+Ollama install, model pull, and serve (linux):
 
 ```bash
+curl -fsSL https://ollama.com/install.sh | sh
 ollama pull qwen3.5:9b
+ollama serve
+
+#when done
+systemctl stop ollama
 ```
 
 ## Usage
@@ -55,7 +60,7 @@ ollama pull qwen3.5:9b
 filtersmith-forge \
   --input input.wav \
   --output output_robot.wav \
-  --prompt "Make me sound like a robot from the past" \
+  --prompt "Make me sound like a robot from the 1960s." \
   --model-name "qwen3.5:9b" \
   --show-plan
 ```
@@ -72,7 +77,7 @@ Input can be any supported format, and output is always WAV:
 filtersmith-forge \
   --input input.mp3 \
   --output output_from_mp3.wav \
-  --prompt "Make me sound like an old radio announcer"
+  --prompt "Make me sound like an old radio announcer."
 ```
 
 Save a generated filter profile as reusable JSON:
@@ -81,7 +86,7 @@ Save a generated filter profile as reusable JSON:
 filtersmith-forge \
   --input input.wav \
   --output output_robot.wav \
-  --prompt "Make me sound like a robot from the past" \
+  --prompt "Make me sound like a robot from the 1960s." \
   --save-profile profiles/robotic_vintage.json \
   --show-plan
 ```
@@ -101,7 +106,7 @@ The planner uses `OllamaChatClient(model_id=..., host=...)` from Agent Framework
 
 - Use `--model-name` (or `--model`) to select an Ollama model.
 - Use `--ollama-host` to target a non-default Ollama endpoint.
-- If Agent Framework calls fail due to API/version differences, planner falls back to direct local Ollama generation so CLI behavior remains usable.
+- If Agent Framework calls fail due to API/version differences, planner falls back to a built-in heuristic DSP plan so CLI behavior remains usable.
 
 ## Next enhancements
 

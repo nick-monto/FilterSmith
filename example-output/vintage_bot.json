@@ -1,27 +1,37 @@
 {
-  "style": "retro_robot_60s",
-  "rationale": "Bandpass filters limit bandwidth to simulate vintage speaker response, ring modulation adds metallic frequency shifts, and mild distortion provides analog saturation.",
+  "style": "vintage_robot_1960s",
+  "rationale": "Narrow EQ restricts bandwidth to simulate telephone/metal speakers, bitcrush adds quantization noise, and ring modulation creates robotic pitch instability.",
   "steps": [
     {
-      "type": "bandpass",
+      "type": "highpass",
       "params": {
-        "low_hz": 250,
-        "high_hz": 3200,
-        "order": 4
+        "low_hz": 250
+      }
+    },
+    {
+      "type": "lowpass",
+      "params": {
+        "high_hz": 3000,
+        "order": 3
+      }
+    },
+    {
+      "type": "bitcrush",
+      "params": {
+        "bits": 7
       }
     },
     {
       "type": "ring_mod",
       "params": {
-        "freq_hz": 90,
-        "mix": 0.35
+        "freq_hz": 10,
+        "mix": 0.2
       }
     },
     {
       "type": "distortion",
       "params": {
-        "drive": 0.3,
-        "type": "soft"
+        "amount": 0.15
       }
     },
     {

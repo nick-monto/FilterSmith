@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from dataclasses import dataclass
 
 from agent_framework.ollama import OllamaChatClient
-from ollama import Client as OllamaClient
 
 from ..models import FilterPlan, FilterStep
 
@@ -25,7 +25,6 @@ class PromptPlanner:
 
     def __init__(self, config: PlannerConfig | None = None):
         self.config = config or PlannerConfig()
-        self.ollama_client = OllamaClient(host=self.config.host)
         self.agent = self._build_planner_agent()
 
     def _build_planner_agent(self):
@@ -49,7 +48,64 @@ class PromptPlanner:
 
     def _generate_json_plan(self, user_prompt: str) -> dict:
         response_text = self._generate_plan_text(user_prompt)
-        return json.loads(response_text)
+        return self._parse_json_plan(response_text)
+
+    def _parse_json_plan(self, response_text: str) -> dict:
+        text = response_text.strip()
+
+        # Fast path for well-formed JSON responses.
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+
+        # Common pattern: JSON wrapped in markdown fences.
+        fenced = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, flags=re.IGNORECASE | re.DOTALL)
+        if fenced:
+            candidate = fenced.group(1).strip()
+            try:
+                parsed = json.loads(candidate)
+                if isinstance(parsed, dict):
+                    return parsed
+            except Exception:
+                pass
+
+        # Fallback: scan for the first balanced JSON object.
+        start = text.find("{")
+        while start != -1:
+            depth = 0
+            in_string = False
+            escaped = False
+            for idx in range(start, len(text)):
+                ch = text[idx]
+                if in_string:
+                    if escaped:
+                        escaped = False
+                    elif ch == "\\":
+                        escaped = True
+                    elif ch == '"':
+                        in_string = False
+                    continue
+
+                if ch == '"':
+                    in_string = True
+                elif ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                    if depth == 0:
+                        candidate = text[start : idx + 1]
+                        try:
+                            parsed = json.loads(candidate)
+                            if isinstance(parsed, dict):
+                                return parsed
+                        except Exception:
+                            break
+            start = text.find("{", start + 1)
+
+        raise json.JSONDecodeError("Could not locate valid JSON object in planner response", text, 0)
 
     def _generate_plan_text(self, user_prompt: str) -> str:
         schema_hint = {
@@ -71,12 +127,7 @@ class PromptPlanner:
             f"Example schema: {json.dumps(schema_hint)}"
         )
 
-        try:
-            return self._generate_with_agent_framework(prompt)
-        except Exception:
-            # Keep local generation working even if Agent Framework API signatures
-            # differ from the currently installed version.
-            return self._generate_with_ollama(prompt)
+        return self._generate_with_agent_framework(prompt)
 
     def _generate_with_agent_framework(self, prompt: str) -> str:
         _log(f"Calling Agent Framework planner (model='{self.config.model}', host='{self.config.host}')")
@@ -94,15 +145,6 @@ class PromptPlanner:
                 return value
 
         return str(response)
-
-    def _generate_with_ollama(self, prompt: str) -> str:
-        _log(f"Calling Ollama fallback generation (model='{self.config.model}', host='{self.config.host}')")
-        response = self.ollama_client.generate(
-            model=self.config.model,
-            prompt=prompt,
-            options={"temperature": 0.2},
-        )
-        return response["response"]
 
     def _coerce_plan(self, data: dict) -> FilterPlan:
         steps = []
