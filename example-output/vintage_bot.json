@@ -1,0 +1,42 @@
+{
+  "style": "vintage_robot_1960s",
+  "rationale": "Narrow EQ restricts bandwidth to simulate telephone/metal speakers, bitcrush adds quantization noise, and ring modulation creates robotic pitch instability.",
+  "steps": [
+    {
+      "type": "highpass",
+      "params": {
+        "low_hz": 250
+      }
+    },
+    {
+      "type": "lowpass",
+      "params": {
+        "high_hz": 3000,
+        "order": 3
+      }
+    },
+    {
+      "type": "bitcrush",
+      "params": {
+        "bits": 7
+      }
+    },
+    {
+      "type": "ring_mod",
+      "params": {
+        "freq_hz": 10,
+        "mix": 0.2
+      }
+    },
+    {
+      "type": "distortion",
+      "params": {
+        "amount": 0.15
+      }
+    },
+    {
+      "type": "normalize",
+      "params": {}
+    }
+  ]
+}

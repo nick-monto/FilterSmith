@@ -1,0 +1,25 @@
+[project]
+name = "FilterSmith"
+version = "0.1.0"
+description = "Prompt-driven voice filter generation with local Ollama and DSP pipelines"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26.0",
+  "scipy>=1.12.0",
+  "pydub>=0.25.1",
+  "agent-framework>=0.3.0rc0"
+]
+
+[project.scripts]
+filtersmith-forge = "filtersmith.cli:main"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
