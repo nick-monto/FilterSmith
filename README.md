@@ -107,9 +107,3 @@ The planner uses `OllamaChatClient(model_id=..., host=...)` from Agent Framework
 - Use `--model-name` (or `--model`) to select an Ollama model.
 - Use `--ollama-host` to target a non-default Ollama endpoint.
 - If Agent Framework calls fail due to API/version differences, planner falls back to a built-in heuristic DSP plan so CLI behavior remains usable.
-
-## Next enhancements
-
-- Add multi-pass chains (parallel dry/wet routing and blend controls)
-- Add objective metrics to auto-tune filter parameters
-- Add a library of style presets with semantic retrieval
